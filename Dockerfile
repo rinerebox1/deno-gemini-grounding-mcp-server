@@ -12,4 +12,4 @@ RUN deno install --node-modules-dir --lock=deno.lock --frozen=false
 COPY . .
 
 # --env-file を含めるとイメージ内に .env が含まれてしまうので、compose.yaml を使ってコンテナ起動時に .env を指定するようにした
-ENTRYPOINT ["deno", "run", "--allow-net=connpass.com", "--allow-read", "--allow-env", "index.ts"]
+ENTRYPOINT ["deno", "run", "--allow-net=generativelanguage.googleapis.com", "--allow-read", "--allow-env", "index.ts"]

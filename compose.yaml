@@ -4,8 +4,6 @@ services:
     image: gemini-grounding-remote-mcp-server:latest
     container_name: gemini-grounding-remote-mcp-server-container
     environment:
-      # Connpass API設定
-      - CONNPASS_API_KEY=${CONNPASS_API_KEY}
       # Gemini API設定
       - GEMINI_API_KEY=${GEMINI_API_KEY}
     # stdin/stdoutを有効にしてMCPサーバーとして動作

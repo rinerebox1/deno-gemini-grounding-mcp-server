@@ -9,7 +9,8 @@
   "nodeModulesDir": "auto",
   "tasks": {
     "start": "deno run --env-file=.env -A index.ts",
-    "test": "deno test --env-file=.env -A"
+    "test": "deno test --env-file=.env -A",
+    "test:tokyo": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/tokyo_attraction_test.ts"
   },
   "imports": {
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.10.2",
