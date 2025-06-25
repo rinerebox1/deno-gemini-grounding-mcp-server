@@ -113,17 +113,23 @@ docker compose run --rm gemini-grounding-remote-mcp-server
 ```
 
 MCPクライアントの設定ファイルでは、`docker compose run`コマンドを指定します。
-MCPサーバーはstdin/stdoutでの対話的通信が必要なため、設定は以下のようになります：
+MCPサーバーはstdin/stdoutでの対話的通信が必要なため、設定は以下のようになります(先にビルドが必要)：
 
 ```json
-"connpass-user-mcp-server": {
-  "command": "docker",
-  "args": [
-    "compose",
-    "run",
-    "--rm",
-    "gemini-grounding-remote-mcp-server"
-  ]
+{
+  "mcpServers": {
+    "gemini-grounding-remote-mcp-server": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-e",
+        "CONNPASS_API_KEY=XXXXXXXXXXXXXXXX",
+        "-e",
+        "GEMINI_API_KEY=XXXXXXXXXXXXXXXX",
+        "gemini-grounding-remote-mcp-server"
+      ]
+    }
+  }
 }
 ```
 

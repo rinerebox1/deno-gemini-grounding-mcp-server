@@ -38,3 +38,5 @@ echo "▶️  サービスを起動中..."
 docker compose up
 
 echo "✅ 起動完了！" 
+
+docker compose down
