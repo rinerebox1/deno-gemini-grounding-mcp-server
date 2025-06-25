@@ -8,7 +8,7 @@ import {
   getUserGroupList,
   getUserList,
   getUserPresenterEvents,
-  getGeminiCallResponse,
+  getGenAIResponse,
 } from "./tools/index.ts";
 import process from "node:process";
 
@@ -66,14 +66,21 @@ server.tool(
   },
 );
 
+// New tool definition for getGenAIResponse
 server.tool(
-  "call_gemini_api",
-  "Call the Gemini API with a user prompt and get a response",
+  "call_generative_ai", // Renamed tool
+  "Calls either the Gemini Developer API or Vertex AI with a user prompt and options.",
   {
-    userMessage: z.string().describe("The message/prompt to send to the Gemini API"),
+    userMessage: z.string().describe("The message/prompt to send to the Generative AI."),
+    options: z.object({
+      useVertexAI: z.boolean().describe("Set to true to use Vertex AI, false for Gemini Developer API."),
+      model: z.string().describe("The model name (e.g., 'gemini-1.5-flash-001') or full model path for Vertex AI."),
+      project: z.string().optional().describe("Google Cloud Project ID (required if useVertexAI is true)."),
+      location: z.string().optional().describe("Google Cloud Project Location (required if useVertexAI is true)."),
+    }).describe("Options for configuring the AI call."),
   },
-  async ({ userMessage }: { userMessage: string }) => {
-    return await getGeminiCallResponse(userMessage);
+  async ({ userMessage, options }: { userMessage: string; options: { useVertexAI: boolean; model: string; project?: string; location?: string; } }) => {
+    return await getGenAIResponse(userMessage, options);
   },
 );
 
