@@ -67,6 +67,68 @@ npm run build
 
 ### Dockerでの起動
 
+#### docker-compose使用（推奨）
+
+1. 環境変数ファイルを作成します。
+
+```bash
+# .envファイルを作成し、以下の内容を設定
+echo "CONNPASS_API_KEY=your_connpass_api_key_here" > .env
+echo "GEMINI_API_KEY=your_gemini_api_key_here" >> .env
+```
+
+2. 用途に応じてサービスを起動します。
+
+docker compose run vs docker compose up の違い
+
+🔍 重要な違い
+
+docker compose up：
+- サービス全体を起動し、フォアグラウンドで継続実行
+- ログが表示され続け、Ctrl+Cで停止するまで動作
+- 開発・テスト時のサーバー起動に適している
+
+docker compose run：
+- 一回限りのコマンド実行に使用
+- コンテナを起動してコマンドを実行し、完了後に自動終了
+- MCPクライアントからの呼び出しに適している
+
+**🔧 開発・テスト用（継続実行）:**
+```bash
+# 起動スクリプトを実行（クリーンアップ→ビルド→起動を自動実行）
+./start.sh
+```
+
+または、手動でdocker composeコマンドを実行します。
+
+```bash
+docker compose up --build
+```
+
+**⚡ MCP用（一回限りの実行）:**
+MCPクライアント経由で自動実行されます。手動テストする場合：
+
+```bash
+docker compose run --rm gemini-grounding-remote-mcp-server
+```
+
+MCPクライアントの設定ファイルでは、`docker compose run`コマンドを指定します。
+MCPサーバーはstdin/stdoutでの対話的通信が必要なため、設定は以下のようになります：
+
+```json
+"connpass-user-mcp-server": {
+  "command": "docker",
+  "args": [
+    "compose",
+    "run",
+    "--rm",
+    "gemini-grounding-remote-mcp-server"
+  ]
+}
+```
+
+#### 直接Docker使用
+
 Dockerfileを使用してサーバーを起動することもできます。
 
 1. Dockerイメージをビルドします。
@@ -78,7 +140,7 @@ docker build -t connpass-user-mcp-server .
 2. コンテナを起動します。APIキーは環境変数として渡します。
 
 ```bash
-docker run -e CONNPASS_API_KEY=XXXXXXXXXXXXXXXX connpass-user-mcp-server
+docker run -e CONNPASS_API_KEY=XXXXXXXXXXXXXXXX -e GEMINI_API_KEY=YYYYYYYYYYYYYYYY connpass-user-mcp-server
 ```
 
 MCPクライアントの設定ファイルでは、`docker`コマンドを指定します。
@@ -90,6 +152,8 @@ MCPクライアントの設定ファイルでは、`docker`コマンドを指定
     "run",
     "-e",
     "CONNPASS_API_KEY=XXXXXXXXXXXXXXXX",
+    "-e",
+    "GEMINI_API_KEY=YYYYYYYYYYYYYYYY",
     "connpass-user-mcp-server"
   ]
 }

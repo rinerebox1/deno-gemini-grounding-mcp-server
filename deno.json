@@ -6,12 +6,14 @@
   "version": "0.2.4",
   "license": "MIT",
   "exports": "./index.ts",
+  "nodeModulesDir": "auto",
   "tasks": {
     "start": "deno run --env-file=.env -A index.ts",
     "test": "deno test --env-file=.env -A"
   },
   "imports": {
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.10.2",
-    "zod": "npm:zod@3.24.3"
+    "zod": "npm:zod@3.24.3",
+    "@google/genai": "npm:@google/genai@^1.6.0"
   }
 }

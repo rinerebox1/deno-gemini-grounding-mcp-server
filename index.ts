@@ -66,9 +66,8 @@ server.tool(
   },
 );
 
-// New tool definition for getGenAIResponse
 server.tool(
-  "call_generative_ai", // Renamed tool
+  "call_gemini_or_vertex_ai",
   "Calls either the Gemini Developer API or Vertex AI with a user prompt and options.",
   {
     userMessage: z.string().describe("The message/prompt to send to the Generative AI."),
