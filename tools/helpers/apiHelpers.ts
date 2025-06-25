@@ -3,9 +3,14 @@ import { USERSAPI } from "../../constants.ts";
 import { env } from "node:process";
 
 const API_KEY = env.CONNPASS_API_KEY || "";
+export const GEMINI_API_KEY = env.GEMINI_API_KEY || "";
 
 if (!API_KEY) {
   console.warn("Warning: CONNPASS_API_KEY is not set in .env file");
+}
+
+if (!GEMINI_API_KEY) {
+  console.warn("Warning: GEMINI_API_KEY is not set in .env file");
 }
 
 /**
