@@ -8,6 +8,7 @@ import {
   getUserGroupList,
   getUserList,
   getUserPresenterEvents,
+  getGeminiCallResponse,
 } from "./tools/index.ts";
 import process from "node:process";
 
@@ -62,6 +63,17 @@ server.tool(
   },
   async ({ nickname }: { nickname: string }) => {
     return await getUserPresenterEvents(nickname);
+  },
+);
+
+server.tool(
+  "call_gemini_api",
+  "Call the Gemini API with a user prompt and get a response",
+  {
+    userMessage: z.string().describe("The message/prompt to send to the Gemini API"),
+  },
+  async ({ userMessage }: { userMessage: string }) => {
+    return await getGeminiCallResponse(userMessage);
   },
 );
 
