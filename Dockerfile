@@ -20,4 +20,4 @@ EXPOSE 3876
 # --allow-read: 設定ファイルの読み込み
 # --allow-env: 環境変数の読み込み
 # --env-file を含めるとイメージ内に .env が含まれてしまうので、compose.yaml を使ってコンテナ起動時に .env を指定するようにした
-ENTRYPOINT ["deno", "run", "--allow-net=generativelanguage.googleapis.com,0.0.0.0:3876", "--allow-read", "--allow-env", "index.ts"]
+ENTRYPOINT ["deno", "run", "--allow-net=generativelanguage.googleapis.com,localhost:3876,127.0.0.1:3876", "--allow-read", "--allow-env", "index.ts"]

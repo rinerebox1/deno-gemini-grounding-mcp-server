@@ -11,7 +11,6 @@ echo "🚀 Gemini Grounding Remote MCP Server を起動します..."
 if [ ! -f ".env" ]; then
     echo "❌ エラー: .envファイルが見つかりません"
     echo "   以下のコマンドで.envファイルを作成してください:"
-    echo "   echo 'CONNPASS_API_KEY=your_connpass_api_key_here' > .env"
     echo "   echo 'GEMINI_API_KEY=your_gemini_api_key_here' >> .env"
     exit 1
 fi

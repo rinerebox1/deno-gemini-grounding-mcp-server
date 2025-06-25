@@ -1,7 +1,10 @@
 ## 使い方
+Docker を使ってクリーンアップ・ビルド・起動する
+```
 ./start.sh
+```
 
-終了したあと
+終了したあとは
 docker compose down
 する
 
@@ -63,7 +66,7 @@ cp .env.example .env
         "command": "wsl.exe",
         "args": [
           "/home/smorce/.deno/bin/deno",
-          "--allow-net=generativelanguage.googleapis.com",
+          "--allow-net=generativelanguage.googleapis.com,localhost:3876,127.0.0.1:3876",
           "--allow-env",
           "--allow-read",
           "--env-file=/home/smorce/MCP/gemini-grounding-remote-mcp-server/.env",
@@ -256,19 +259,17 @@ MCPクライアントの設定ファイルでは、`docker`コマンドを指定
 
 ### Denoでのテスト
 
-MCP サーバー起動コマンド:
-```bash
-deno task start
-```
-
-MCP サーバー起動後に東京の魅力プロンプトなど、Gemini API を使用したテストを実行します：
+東京の魅力プロンプトなど、Gemini API を使用したテストを実行します：
 
 ```bash
 deno task test:tokyo
 ```
 
-以下のようなアウトプットになっていれば成功。30秒の安全タイムアウトが作動しているのは正常な動作。
+以下のようなアウトプットになっていれば成功。
+「⚠️ Forced shutdown due to timeout」はタイムアウト保護が作動している証拠なので OK。3秒以内に終了させる。
 ```
+=== レスポンス終了 ===
+
 🔍 === レスポンス検証 ===
 ✅ キーワード検出: 5/5
   - "東京" ✓
@@ -280,10 +281,13 @@ deno task test:tokyo
 🎉 テスト成功: 東京の魅力について適切にレスポンスしました！
 
 📊 レスポンス統計:
-  - 文字数: 1541
-  - 行数: 15
-✅ MCPサーバープロセス終了 (コード: 143)
-⏰ タイムアウト: プロセスを終了します
+  - 文字数: 1241
+  - 行数: 13
+📋 サーバーログ: 🛑 Shutting down gracefully...
+📋 サーバーログ: ⚠️ Forced shutdown due to timeout
+
+🛑 サーバーを停止しました
+✅ サーバープロセス終了 (コード: 0)
 ```
 
 テストの詳細については `tests/README.md` を参照してください。

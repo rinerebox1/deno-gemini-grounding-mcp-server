@@ -10,7 +10,7 @@
 
 import { spawn } from "node:child_process";
 
-// ★ 追加: サーバが許可する MCP プロトコル日付
+// サーバが許可する MCP プロトコル日付
 const MCP_PROTOCOL_VERSION = '2024-05-10';   // ← ここをサーバ実装に合わせる
 
 class MCPHTTPTestClient {
@@ -107,7 +107,25 @@ class MCPHTTPTestClient {
 
   async stopServer(): Promise<void> {
     if (this.serverProcess) {
-      this.serverProcess.kill();
+      // グレースフルシャットダウンのためSIGTERMを送信
+      this.serverProcess.kill('SIGTERM');
+      
+      // プロセスが終了するまで少し待つ
+      await new Promise((resolve) => {
+        const timeout = setTimeout(() => {
+          // タイムアウトした場合は強制終了
+          if (this.serverProcess) {
+            this.serverProcess.kill('SIGKILL');
+          }
+          resolve(undefined);
+        }, 5000);
+        
+        this.serverProcess.on('exit', () => {
+          clearTimeout(timeout);
+          resolve(undefined);
+        });
+      });
+      
       this.serverProcess = null;
     }
   }

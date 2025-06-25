@@ -86,7 +86,34 @@ async function startServer() {
 
   const port = parseInt(process.env.PORT || "3876", 10);
   console.log(`🚀 Listening on http://localhost:${port}`);
-  serve({ fetch: app.fetch, port });
+  
+  const server = serve({ fetch: app.fetch, port });
+
+  // グレースフルシャットダウンのためのシグナルハンドリング
+  const shutdown = () => {
+    console.log("🛑 Shutting down gracefully...");
+    
+    // タイムアウトを設定して確実に終了させる
+    const forceExitTimer = setTimeout(() => {
+      console.log("⚠️ Forced shutdown due to timeout");
+      process.exit(0);
+    }, 3000); // 3秒後に強制終了
+    
+    try {
+      server.close(() => {
+        console.log("✅ Server closed successfully");
+        clearTimeout(forceExitTimer);
+        process.exit(0);
+      });
+    } catch (error) {
+      console.log("⚠️ Error during server close, forcing exit");
+      clearTimeout(forceExitTimer);
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 startServer().catch((e) => {
