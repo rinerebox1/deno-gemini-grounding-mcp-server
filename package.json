@@ -27,7 +27,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.10.2",
     "zod": "3.24.3",
-    "@google/genai": "^0.14.0"
+    "@google/genai": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "20.17.31",
