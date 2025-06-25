@@ -1,0 +1,15 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+.env
+.env.local
+.env.*
+project_summary.md
+codebase.txt
+memo.md
+chainlit.md
+vertex-ai-gemini.json
+github_token.txt
+node_modules/
+.chainlit/
+.files/
+.git/
+.next/

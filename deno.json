@@ -1,0 +1,17 @@
+{
+  "$id": "https://jsr.io/schema/config-file.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "name": "@yamanoku/connpass-user-mcp-server",
+  "description": "Model Context Protocol server that provides connpass users API v2",
+  "version": "0.2.4",
+  "license": "MIT",
+  "exports": "./index.ts",
+  "tasks": {
+    "start": "deno run --env-file=.env -A index.ts",
+    "test": "deno test --env-file=.env -A"
+  },
+  "imports": {
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.10.2",
+    "zod": "npm:zod@3.24.3"
+  }
+}
