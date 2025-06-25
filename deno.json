@@ -10,11 +10,15 @@
   "tasks": {
     "start": "deno run --env-file=.env -A index.ts",
     "test": "deno test --env-file=.env -A",
-    "test:tokyo": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/tokyo_attraction_test.ts"
+    "test:tokyo": "deno run --allow-run --allow-net=generativelanguage.googleapis.com,localhost:3876,127.0.0.1:3876 --allow-env --allow-read --env-file=.env tests/tokyo_attraction_test.ts"
   },
   "imports": {
-    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.10.2",
-    "zod": "npm:zod@3.24.3",
-    "@google/genai": "npm:@google/genai@^1.6.0"
+    "@google/genai": "npm:@google/genai@^1.6.0",
+    "@hono/mcp": "npm:@hono/mcp@^0.1.0",
+    "@hono/node-server": "npm:@hono/node-server@^1.12.0",
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.13.1",
+    "fetch-to-node": "npm:fetch-to-node@^2.1.0",
+    "hono": "npm:hono@^4.8.3",
+    "zod": "npm:zod@3.24.3"
   }
 }

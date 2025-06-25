@@ -1,129 +1,210 @@
-#!/usr/bin/env -S deno run --allow-run --allow-env --env-file=../.env
+#!/usr/bin/env -S deno run --allow-run --allow-net --allow-env --env-file=../.env
 
 /**
- * 東京の魅力についてのプロンプトテスト（Deno版）
+ * 東京の魅力についてのプロンプトテスト（Hono HTTP MCP サーバー版）
+ * index.ts の新しい実装に対応：
+ * - MCPサーバーは起動時に一度だけ初期化
+ * - /mcp/* パターンでMCPリクエストを処理
+ * - StreamableHTTPTransportを使用
  */
 
 import { spawn } from "node:child_process";
-import { createInterface } from "node:readline";
 
-class MCPTestClient {
-  constructor(options: { verbose?: boolean; timeout?: number } = {}) {
+// ★ 追加: サーバが許可する MCP プロトコル日付
+const MCP_PROTOCOL_VERSION = '2024-05-10';   // ← ここをサーバ実装に合わせる
+
+class MCPHTTPTestClient {
+  constructor(options: { verbose?: boolean; timeout?: number; serverUrl?: string } = {}) {
     this.verbose = options.verbose !== false;
     this.timeout = options.timeout || 30000;
+    this.serverUrl = options.serverUrl || 'http://localhost:3876';
   }
 
   private verbose: boolean;
   private timeout: number;
+  private serverUrl: string;
+  private serverProcess: any = null;
 
-  async callTool(toolName: string, toolArguments: any): Promise<any> {
+  async startServer(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.verbose) {
-        console.log(`🚀 MCPツール "${toolName}" のテストを開始...`);
+        console.log('🚀 Hono MCPサーバーを起動中...');
       }
 
-      // MCPサーバープロセスを起動
-      const mcpServer = spawn('deno', ['run', '--env-file=.env', '--allow-net=generativelanguage.googleapis.com', '--allow-env', '--allow-read', 'index.ts'], {
-        stdio: ['pipe', 'pipe', 'pipe']
+      let resolved = false;
+
+      // Honoサーバープロセスを起動
+      this.serverProcess = spawn('deno', ['task', 'start'], {
+        stdio: ['pipe', 'pipe', 'pipe'],
+        cwd: process.cwd()
       });
 
-      // サーバーからのレスポンスを処理
-      const rl = createInterface({
-        input: mcpServer.stdout,
-        crlfDelay: Infinity
-      });
-
-      let toolResult: any = null;
-
-      rl.on('line', (line: string) => {
+      this.serverProcess.stdout?.on('data', (data: Uint8Array) => {
+        const output = new TextDecoder().decode(data);
         if (this.verbose) {
-          console.log('📥 サーバーレスポンス:', line);
+          console.log('📋 サーバーログ:', output.trim());
         }
-
-        try {
-          const response = JSON.parse(line);
-          
-          // 初期化完了の確認
-          if (response.id === 1 && response.result) {
-            return;
-          }
-
-          // ツール実行結果の取得
-          if (response.id === 2 && response.result) {
-            toolResult = response.result;
-            mcpServer.kill();
-            resolve(toolResult);
-          }
-
-          // エラーハンドリング
-          if (response.error) {
-            mcpServer.kill();
-            reject(new Error(`MCP Error: ${JSON.stringify(response.error)}`));
-          }
-        } catch (e) {
-          // JSONパースエラーは無視
+        // サーバー起動完了の検出（実際のログメッセージに合わせて修正）
+        if (output.includes('Listening on http://localhost:3876') && !resolved) {
+          resolved = true;
+          // ヘルスチェックで実際にサーバーが応答するまで待機
+          this.waitForServerReady().then(() => {
+            resolve();
+          }).catch((error) => {
+            reject(error);
+          });
         }
       });
 
-      mcpServer.stderr?.on('data', (data: Uint8Array) => {
+      this.serverProcess.stderr?.on('data', (data: Uint8Array) => {
+        const output = new TextDecoder().decode(data);
         if (this.verbose) {
-          console.log('📋 サーバーログ:', new TextDecoder().decode(data));
+          console.log('📋 サーバーエラー:', output.trim());
         }
       });
 
-      mcpServer.on('close', (code: number | null) => {
+      this.serverProcess.on('close', (code: number | null) => {
         if (this.verbose) {
-          console.log(`✅ MCPサーバープロセス終了 (コード: ${code})`);
+          console.log(`✅ サーバープロセス終了 (コード: ${code})`);
         }
-        if (!toolResult) {
-          reject(new Error('ツール実行が完了しませんでした'));
+        if (!resolved) {
+          reject(new Error(`サーバープロセスが異常終了しました (コード: ${code})`));
         }
       });
-
-      // 初期化メッセージを送信
-      const initMessage = {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2024-11-05",
-          capabilities: { tools: {} },
-          clientInfo: { name: "mcp-test-client", version: "1.0.0" }
-        }
-      };
-
-      if (this.verbose) {
-        console.log('📤 初期化メッセージ送信中...');
-      }
-      mcpServer.stdin?.write(JSON.stringify(initMessage) + '\n');
-
-      // ツール呼び出しメッセージを送信
-      setTimeout(() => {
-        const toolCallMessage = {
-          jsonrpc: "2.0",
-          id: 2,
-          method: "tools/call",
-          params: {
-            name: toolName,
-            arguments: toolArguments
-          }
-        };
-
-        if (this.verbose) {
-          console.log(`📤 ツール "${toolName}" 呼び出し中...`);
-        }
-        mcpServer.stdin?.write(JSON.stringify(toolCallMessage) + '\n');
-      }, 1000);
 
       // タイムアウト設定
       setTimeout(() => {
-        if (this.verbose) {
-          console.log('⏰ タイムアウト: プロセスを終了します');
+        if (!resolved) {
+          reject(new Error('サーバー起動がタイムアウトしました'));
         }
-        mcpServer.kill();
-        reject(new Error('テストがタイムアウトしました'));
-      }, this.timeout);
+      }, 15000); // タイムアウトを15秒に延長
     });
+  }
+
+  private async waitForServerReady(): Promise<void> {
+    const maxRetries = 10;
+    const retryInterval = 500; // 500ms間隔
+
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        const isReady = await this.healthCheck();
+        if (isReady) {
+          if (this.verbose) {
+            console.log('✅ サーバーがヘルスチェックに応答しました');
+          }
+          return;
+        }
+      } catch (error) {
+        // ヘルスチェック失敗は正常（サーバーがまだ起動中の可能性）
+      }
+
+      // 少し待ってリトライ
+      await new Promise(resolve => setTimeout(resolve, retryInterval));
+    }
+
+    throw new Error('サーバーがヘルスチェックに応答しませんでした');
+  }
+
+  async stopServer(): Promise<void> {
+    if (this.serverProcess) {
+      this.serverProcess.kill();
+      this.serverProcess = null;
+    }
+  }
+
+  async healthCheck(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.serverUrl}/`);
+      const text = await response.text();
+      return text.includes('Hello, MCP Server is available at /mcp');
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async callTool(toolName: string, toolArguments: any): Promise<any> {
+    if (this.verbose) {
+      console.log(`🚀 MCPツール "${toolName}" のHTTPテストを開始...`);
+    }
+    
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept':       'application/json'
+    };
+
+    try {
+      // 初期化リクエスト
+      if (this.verbose) {
+        console.log('📤 初期化メッセージ送信中...');
+      }
+      const initResponse = await fetch(`${this.serverUrl}/mcp`, {
+        method:  'POST',
+        headers,
+        body:    JSON.stringify({
+          jsonrpc: "2.0",
+          id:      1,
+          method:  "initialize",
+          params: {
+            protocolVersion: MCP_PROTOCOL_VERSION,
+            capabilities:    { tools: {} },
+            clientInfo:      { name: "mcp-http-test-client", version: "1.0.0" }
+          }
+        })
+      });
+
+      if (!initResponse.ok) {
+        throw new Error(`初期化失敗: ${initResponse.status} ${initResponse.statusText}`);
+      }
+      let initResult: any;
+      if ((initResponse.headers.get('content-type') || '').startsWith('text/event-stream')) {
+        initResult = await this.parseSSEtoJSON(initResponse);
+      } else {
+        initResult = await initResponse.json();
+      }
+      if (this.verbose) {
+        console.log('📥 初期化レスポンス:', JSON.stringify(initResult, null, 2));
+      }
+  
+      // ツール呼び出しリクエスト
+      const toolCallMessage = {
+        jsonrpc: "2.0",
+        id:      2,
+        method:  "tools/call",
+        params: {
+          name:      toolName,
+          arguments: toolArguments
+        }
+      };
+      if (this.verbose) {
+        console.log(`📤 ツール "${toolName}" 呼び出し中...`);
+      }
+      const toolResponse = await fetch(`${this.serverUrl}/mcp`, {
+        method:  'POST',
+        headers,
+        body:    JSON.stringify(toolCallMessage)
+      });
+      if (!toolResponse.ok) {
+        throw new Error(`ツール呼び出し失敗: ${toolResponse.status} ${toolResponse.statusText}`);
+      }
+
+      let toolResult: any;
+      if ((toolResponse.headers.get('content-type') || '').startsWith('text/event-stream')) {
+        toolResult = await this.parseSSEtoJSON(toolResponse);
+      } else {
+        toolResult = await toolResponse.json();
+      }
+      if (this.verbose) {
+        console.log('📥 ツールレスポンス:', JSON.stringify(toolResult, null, 2));
+      }
+      if (toolResult.error) {
+        throw new Error(`MCP Error: ${JSON.stringify(toolResult.error)}`);
+      }
+  
+      return toolResult.result;
+  
+    } catch (error) {
+      throw new Error(`HTTP MCP呼び出しエラー: ${(error as Error).message}`);
+    }
   }
 
   extractText(result: any): string {
@@ -136,20 +217,53 @@ class MCPTestClient {
       .map((item: any) => item.text)
       .join('\n');
   }
+
+  /**
+   * text/event-stream 形式のレスポンスを JSON に変換するヘルパ。
+   * 単純化のため、最初の `data: ` 行を取り出して JSON.parse する。
+   */
+  private async parseSSEtoJSON(response: Response): Promise<any> {
+    const raw = await response.text();
+    // 行単位で解析し、最初に出現する "data: " プレフィックスの行を探す
+    for (const line of raw.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("data:")) {
+        const jsonPart = trimmed.slice("data:".length).trim();
+        try {
+          return JSON.parse(jsonPart);
+        } catch (_) {
+          // JSON でなければ無視して続行
+        }
+      }
+    }
+    throw new Error("SSE から JSON を抽出できませんでした");
+  }
 }
 
 /**
  * 東京の魅力プロンプトテストを実行
  */
 async function testTokyoAttraction() {
-  const client = new MCPTestClient({
+  const client = new MCPHTTPTestClient({
     verbose: true,
     timeout: 30000
   });
 
   try {
-    console.log('🗾 === 東京の魅力プロンプトテスト開始 ===\n');
+    console.log('🗾 === 東京の魅力プロンプトテスト開始（Hono HTTP版） ===\n');
 
+    // サーバー起動
+    await client.startServer();
+
+    // ヘルスチェック
+    console.log('🏥 ヘルスチェック実行中...');
+    const isHealthy = await client.healthCheck();
+    if (!isHealthy) {
+      throw new Error('サーバーのヘルスチェックに失敗しました');
+    }
+    console.log('✅ サーバーは正常に動作しています\n');
+
+    // MCPツール呼び出し
     const result = await client.callTool('call_gemini_or_vertex_ai', {
       userMessage: "東京の魅力について饒舌に語ってください。",
       options: {
@@ -185,7 +299,10 @@ async function testTokyoAttraction() {
 
   } catch (error) {
     console.error('❌ テストエラー:', (error as Error).message);
-    globalThis.Deno?.exit(1);
+  } finally {
+    // サーバー停止
+    await client.stopServer();
+    console.log('\n🛑 サーバーを停止しました');
   }
 }
 

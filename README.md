@@ -3,9 +3,40 @@
 
 終了したあと
 docker compose down
+する
 
 
 簡単にMCPサーバーを起動する方法(Docker を使わない)：deno task start
+
+
+
+
+deno task test:tokyo
+
+
+
+
+サーバーはポート3876で起動します
+Dockerでは http://localhost:3876 でアクセス可能
+ヘルスチェック: http://localhost:3876/
+MCPエンドポイント: http://localhost:3876/mcp
+
+サーバーが正常に動作しているかチェックする:
+curl -s http://localhost:3876/ || echo "Server not responding"
+
+
+deno.lock のアップデート方法:
+rm -rf ~/.cache/deno && deno cache --reload index.ts
+
+アップデートできたかは以下で確認:
+ls -la deno.lock && head -10 deno.lock
+
+
+# v2 の大きな変更点
+
+- Cloudflare にデプロイするために stdioベースのMCPサーバーからHTTPエンドポイント（/mcp）を使用するため、HTTPリクエストベースに変更。
+  - tokyo_attraction_test.tsを新しいHonoベースのHTTPサーバー実装に合わせて修正します。現在のテストはstdio（標準入出力）ベースのMCPサーバーを前提としていますが、新しい実装はHTTPエンドポイント（/mcp）を使用するため、HTTPリクエストベースのテストに変更する必要があります。
+
 
 
 ## セットアップ

@@ -1,48 +1,95 @@
 #!/usr/bin/env node
 
+// ヘルスチェックエンドポイント: GET / でサーバーの稼働状況を確認
+// MCPエンドポイント: POST /mcp でMCPプロトコルのリクエストを処理
+// Node.js/Deno両対応: 環境変数の取得方法を両環境で対応
+// fetch-to-nodeを使用: StreamableHTTPServerTransportとの互換性確保
+// 毎リクエストでのMCPサーバー作成: 状態管理が不要でスケーラブル
+
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { toFetchResponse, toReqRes } from "fetch-to-node";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import {
-  getGenAIResponse,
-} from "./tools/index.ts";
-import process from "node:process";
+import { createMcpServer } from "./mcp/server.ts";
 
-// MCPサーバーの初期化
-const server = new McpServer({
-  name: "GenAI MCP Server",
-  version: "0.1.1",
-  capabilities: {
-    resource: {},
-    tools: {},
-  },
-});
+async function startServer() {
+  const app = new Hono();
 
-server.tool(
-  "call_gemini_or_vertex_ai",
-  "Calls either the Gemini Developer API or Vertex AI with a user prompt and options.",
-  {
-    userMessage: z.string().describe("The message/prompt to send to the Generative AI."),
-    options: z.object({
-      useVertexAI: z.boolean().describe("Set to true to use Vertex AI, false for Gemini Developer API."),
-      model: z.string().describe("The model name (e.g., 'gemini-1.5-flash-001') or full model path for Vertex AI."),
-      project: z.string().optional().describe("Google Cloud Project ID (required if useVertexAI is true)."),
-      location: z.string().optional().describe("Google Cloud Project Location (required if useVertexAI is true)."),
-    }).describe("Options for configuring the AI call."),
-  },
-  async ({ userMessage, options }: { userMessage: string; options: { useVertexAI: boolean; model: string; project?: string; location?: string; } }) => {
-    return await getGenAIResponse(userMessage, options);
-  },
-);
+  app.get("/", (c) => c.text("Hello, MCP Server is available at /mcp"));
 
-// 起動
-async function setMCPServer() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error("GenAI MCP Server running on stdio");
+  app.all("/mcp", async (c) => {
+    // Hono の Request → Node.js req/res
+    const { req, res } = toReqRes(c.req.raw);
+
+    // MCP サーバーインスタンス
+    const mcpServer: McpServer = createMcpServer();
+
+    // Transport の生成
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined, // ステートレスモードを指定
+    });
+    await mcpServer.connect(transport);
+
+    try {
+      if (c.req.method === "POST") {
+        // JSON-RPC モード: クライアントが送ってきた Accept ヘッダーを尊重しつつ
+        // application/json と text/event-stream の両方を必ず含める。
+        const originalAccept = req.headers["accept"] ?? "";
+        const acceptTypes = new Set(
+          originalAccept
+            .split(",")
+            .map((v) => v.trim())
+            .filter((v) => v.length > 0),
+        );
+        acceptTypes.add("application/json");
+        acceptTypes.add("text/event-stream");
+        req.headers["accept"] = Array.from(acceptTypes).join(", ");
+
+        const body = await c.req.json();
+        console.log("🔍 POST /mcp  Body:", body);
+
+        // ボディ付きで呼び出し
+        await transport.handleRequest(req, res, body);
+
+      } else {
+        // SSE モード: イベントストリームを返せるよう Accept を上書き
+        req.headers["accept"] = "text/event-stream";
+
+        console.log("🔍 GET  /mcp  SSE start");
+        // ボディなしで呼び出し (SSE セッション開始)
+        await transport.handleRequest(req, res);
+      }
+
+      // クローズ時に必ずクリーンアップ
+      res.on("close", () => {
+        console.log("🔒 Connection closed");
+        transport.close();
+        mcpServer.close();
+      });
+
+      console.log("✅ Response generated successfully");
+      return toFetchResponse(res);
+
+    } catch (err) {
+      console.error("❌ MCP processing error:", err);
+      // エラー時にも必ずクリーンアップ
+      transport.close();
+      mcpServer.close();
+      return c.json({
+        jsonrpc: "2.0",
+        error: { code: -32603, message: "Internal server error" },
+        id: null
+      }, 500);
+    }
+  });
+
+  const port = parseInt(process.env.PORT || "3876", 10);
+  console.log(`🚀 Listening on http://localhost:${port}`);
+  serve({ fetch: app.fetch, port });
 }
 
-setMCPServer().catch((error) => {
-  console.error("Fatal error in setMCPServer():", error);
+startServer().catch((e) => {
+  console.error("Failed to start:", e);
   process.exit(1);
 });

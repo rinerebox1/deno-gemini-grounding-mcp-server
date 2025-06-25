@@ -25,9 +25,13 @@
   "author": "yamanoku",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.10.2",
-    "zod": "3.24.3",
-    "@google/genai": "^1.6.0"
+    "@google/genai": "^1.6.0",
+    "@hono/mcp": "^0.1.0",
+    "@hono/node-server": "^1.12.0",
+    "@modelcontextprotocol/sdk": "1.13.1",
+    "fetch-to-node": "^2.1.0",
+    "hono": "^4.8.3",
+    "zod": "3.24.3"
   },
   "devDependencies": {
     "@types/node": "20.17.31",

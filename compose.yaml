@@ -10,7 +10,7 @@ services:
     stdin_open: true
     tty: true
     # 必要に応じてポートマッピングやボリュームマウントを追加
-    # ports:
-    #   - "3000:3000"
+    ports:
+      - "3876:3876"
     # volumes:
     #   - .:/app 
