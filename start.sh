@@ -39,4 +39,6 @@ docker compose up
 
 echo "✅ 起動完了！" 
 
+echo "🛑 サービスを停止中..."
 docker compose down
+echo "🛑 サービスを停止完了！" 
