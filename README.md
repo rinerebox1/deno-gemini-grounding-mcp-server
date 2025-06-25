@@ -26,16 +26,20 @@ cp .env.example .env
 ### Denoでの起動（推奨）
 
 ```json
-"connpass-user-mcp-server": {
-  "command": "wsl.exe",
-  "args": [
-    "/home/user/.deno/bin/deno",
-    "--allow-net=connpass.com",
-    "--env-file=/home/user/connpass-mcp-server/.env",
-    "--allow-read",
-    "--allow-env",
-    "/home/user/connpass-mcp-server/index.ts"
-  ]
+{
+  "mcpServers": {
+    "gemini-grounding-remote-mcp-server": {
+        "command": "wsl.exe",
+        "args": [
+          "/home/smorce/.deno/bin/deno",
+          "--allow-net=generativelanguage.googleapis.com",
+          "--allow-env",
+          "--allow-read",
+          "--env-file=/home/smorce/MCP/gemini-grounding-remote-mcp-server/.env",
+          "/home/smorce/MCP/gemini-grounding-remote-mcp-server/index.ts"
+        ]
+    }
+  }
 }
 ```
 
@@ -74,7 +78,6 @@ npm run build
 
 ```bash
 # .envファイルを作成し、以下の内容を設定
-echo "CONNPASS_API_KEY=your_connpass_api_key_here" > .env
 echo "GEMINI_API_KEY=your_gemini_api_key_here" >> .env
 ```
 
@@ -222,7 +225,10 @@ MCPクライアントの設定ファイルでは、`docker`コマンドを指定
 
 ### Denoでのテスト
 
-MCP サーバー起動コマンド: deno task start
+MCP サーバー起動コマンド:
+```bash
+deno task start
+```
 
 MCP サーバー起動後に東京の魅力プロンプトなど、Gemini API を使用したテストを実行します：
 
