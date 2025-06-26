@@ -1,12 +1,13 @@
 ## 使い方
-Docker を使ってクリーンアップ・ビルド・起動する。MCPサーバーが起動してそこで止まる。
+Docker を使ってクリーンアップ・ビルド・起動する。MCPサーバーが起動してそこで止まる。ただ、これだけあっても用途は良く分からない。
 ```
 ./start.sh
 ```
 
 終了したあとは
 docker compose down
-する
+する。
+
 
 
 簡単にMCPサーバーを起動する方法(Docker を使わない)：deno task start
@@ -19,29 +20,55 @@ deno task test:google_search
 deno task test:google_search_simple
 
 
-Google 検索によるグラウンディング	の料金
+## MCPサーバーを追加する方法
+
+- 実装するファイル
+  - index.ts で server.tool を追加する
+  - tools フォルダで Tool を定義する(get~~.ts)
+    - tools/helpers/formatHelpers.ts で出力フォーマットの整形
+  - tools/index.ts に追加
+  - ライブラリの追加が必要な場合
+    - deno.json に追加
+    - deno.lock のアップデート方法:
+      - rm -rf ~/.cache/deno && deno cache --reload index.ts
+      - アップデートできたかは以下で確認:
+      - ls -la deno.lock && head -10 deno.lock
+- テストコード
+  - tests フォルダにテストコードを実装
+  - 次に deno.json の tasks にテストファイルの追加
+- テストの実行方法
+  - deno task test:tokyo
+- 注意点
+ - from で呼び出すファイルは .js ではなく .tx。LLM が良く .js に変えるので注意
+
+テストが通ったら MCPサーバーが実装できたということなので
+「C:\Users\kbpsh\OneDrive\development\gemini-grounding-remote-mcp-server」の方で
+「.gemini/settings.json」に追記する。
+Gemini CLI から MCPサーバーを利用する。
+
+
+- v1: Connpass機能あり + 基本的なGenAI機能(stdio)
+- v2: Connpass機能削除 + 東京観光特化のGenAI機能(stdio)
+- v3: v2 を改良して Cloudflare Workers対応（Hono サーバーでちゃんと動いたが、Cloudflareへのデプロイはしていない）(Streamable HTTP)
+- v4: v2の改良版。Gemini のグラウンディング MCPサーバーを追加。Cloudflare Workersの対応はしていない(stdio)
+
+
+
+## Google 検索によるグラウンディング	の料金
 https://cloud.google.com/vertex-ai/generative-ai/pricing?hl=ja
 
 Gemini Flash 2.5 なら1日 1500 件まで無料で検索可能。Lite も一緒。だいたい1回検索で3クエリくらい消費する。
 
 
 
+## Cursor かつ WSL 側で MCP Tool を登録するのがかなり難しい。とりあえず、Cドライブ側で Gemini CLI から MCP サーバーを認識できたので OK とする。ただ、Cドライブ側でも Cursor での MCP Tool 呼び出しはできないので、Cursor で MCP 使うのは止める。
 
-良いかでもチェックできる。
+- 問題はCursor と MCP サーバー間の接続にある
+  - 緑のランプがつくのに Tool 数はゼロ
+
+- 以下でチェックできる。
 echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | deno run --env-file=.env --allow-net=generativelanguage.googleapis.com --allow-env --allow-read index.ts
 
-成功しているので、問題はCursorとMCPサーバー間の接続にあるようです。Cursor Forumの解決策を試してみましょう：
-→Cursor かつ WSL 側で MCP Tool を登録するのがかなり難しい。とりあえず、Cドライブ側で Gemini CLI から MCP サーバーを認識できたので OK とする。
-
-
-
-
-
-deno.lock のアップデート方法:
-rm -rf ~/.cache/deno && deno cache --reload index.ts
-
-アップデートできたかは以下で確認:
-ls -la deno.lock && head -10 deno.lock
 
 
 
