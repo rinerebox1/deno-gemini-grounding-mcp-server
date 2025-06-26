@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import {
   getGenAIResponse,
+  getRandomGreeting,
 } from "./tools/index.ts";
 import process from "node:process";
 
@@ -32,6 +33,17 @@ server.tool(
   },
   async ({ userMessage, options }: { userMessage: string; options: { useVertexAI: boolean; model: string; project?: string; location?: string; } }) => {
     return await getGenAIResponse(userMessage, options);
+  },
+);
+
+server.tool(
+  "get_random_greeting",
+  "ユーザーからのプロンプトを受け取り、ランダムな挨拶を返します。",
+  {
+    userPrompt: z.string().describe("ユーザーからのメッセージやプロンプト。"),
+  },
+  async ({ userPrompt }: { userPrompt: string }) => {
+    return await getRandomGreeting(userPrompt);
   },
 );
 
