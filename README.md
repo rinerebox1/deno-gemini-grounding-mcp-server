@@ -44,9 +44,11 @@ deno task test:google_search_simple
  - from で呼び出すファイルは .js ではなく .tx。LLM が良く .js に変えるので注意
 
 テストが通ったら MCPサーバーが実装できたということなので
-「C:\Users\kbpsh\OneDrive\development\deno-gemini-grounding-mcp-server」の方で
+「C:\Users\kbpsh\OneDrive\development\MCP\deno-gemini-grounding-mcp-client」の方で
 「.gemini/settings.json」に追記する。
 Gemini CLI から MCPサーバーを利用する。
+「deno-gemini-grounding-mcp-client」の方はWSLで起動しないこと。WSLとMCPクライアントの相性が悪そうなので、MCPクライアントはWindows側にする。
+
 
 
 - v1: Connpass機能あり + 基本的なGenAI機能(stdio)
