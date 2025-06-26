@@ -1,11 +1,31 @@
 ## 使い方
+Docker を使ってクリーンアップ・ビルド・起動する
+```
 ./start.sh
+```
 
-終了したあと
+終了したあとは
 docker compose down
+する
 
 
 簡単にMCPサーバーを起動する方法(Docker を使わない)：deno task start
+
+
+
+テスト:
+deno task test:tokyo
+
+
+
+
+deno.lock のアップデート方法:
+rm -rf ~/.cache/deno && deno cache --reload index.ts
+
+アップデートできたかは以下で確認:
+ls -la deno.lock && head -10 deno.lock
+
+
 
 
 ## セットアップ
@@ -222,9 +242,7 @@ MCPクライアントの設定ファイルでは、`docker`コマンドを指定
 
 ### Denoでのテスト
 
-MCP サーバー起動コマンド: deno task start
-
-MCP サーバー起動後に東京の魅力プロンプトなど、Gemini API を使用したテストを実行します：
+東京の魅力プロンプトなど、Gemini API を使用したテストを実行します：
 
 ```bash
 deno task test:tokyo
