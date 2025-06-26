@@ -1,3 +1,5 @@
+https://github.com/rinerebox1/deno-gemini-grounding-mcp-server
+
 ## 使い方
 Docker を使ってクリーンアップ・ビルド・起動する。MCPサーバーが起動してそこで止まる。ただ、これだけあっても用途は良く分からない。
 ```
@@ -42,7 +44,7 @@ deno task test:google_search_simple
  - from で呼び出すファイルは .js ではなく .tx。LLM が良く .js に変えるので注意
 
 テストが通ったら MCPサーバーが実装できたということなので
-「C:\Users\kbpsh\OneDrive\development\gemini-grounding-remote-mcp-server」の方で
+「C:\Users\kbpsh\OneDrive\development\deno-gemini-grounding-mcp-server」の方で
 「.gemini/settings.json」に追記する。
 Gemini CLI から MCPサーバーを利用する。
 
@@ -91,15 +93,15 @@ cp .env.example .env
 ### Denoでの起動（推奨）
 
 ```json
-"connpass-user-mcp-server": {
+"deno-gemini-grounding-mcp-server": {
   "command": "wsl.exe",
   "args": [
-    "/home/user/.deno/bin/deno",
-    "--allow-net=connpass.com",
-    "--env-file=/home/user/connpass-mcp-server/.env",
+    "/home/smorce/.deno/bin/deno",
+    "--allow-net=generativelanguage.googleapis.com",
+    "--env-file=/home/smorce/MCP/deno-gemini-grounding-mcp-server/.env",
     "--allow-read",
     "--allow-env",
-    "/home/user/connpass-mcp-server/index.ts"
+    "/home/smorce/MCP/deno-gemini-grounding-mcp-server/index.ts"
   ]
 }
 ```
@@ -121,12 +123,12 @@ npm run build
 3. MCPクライアントの設定ファイル側にビルドしたファイルを指定します。
 
 ```json
-"connpass-user-mcp-server": {
+"deno-gemini-grounding-mcp-server": {
   "command": "wsl.exe",
   "args": [
     "/home/user/.local/share/mise/installs/node/22.14.0/bin/node",
-    "--env-file=/home/user/connpass-mcp-server/.env",
-    "/home/user/connpass-mcp-server/dist/index.js"
+    "--env-file=/home/smorce/MCP/deno-gemini-grounding-mcp-server/.env",
+    "/home/smorce/MCP/deno-gemini-grounding-mcp-server/dist/index.js"
   ]
 }
 ```
@@ -139,7 +141,6 @@ npm run build
 
 ```bash
 # .envファイルを作成し、以下の内容を設定
-echo "CONNPASS_API_KEY=your_connpass_api_key_here" > .env
 echo "GEMINI_API_KEY=your_gemini_api_key_here" >> .env
 ```
 
@@ -175,7 +176,7 @@ docker compose up --build
 MCPクライアント経由で自動実行されます。手動テストする場合：
 
 ```bash
-docker compose run --rm gemini-grounding-remote-mcp-server
+docker compose run --rm deno-gemini-grounding-mcp-server
 ```
 
 MCPクライアントの設定ファイルでは、`docker compose run`コマンドを指定します。
@@ -184,15 +185,13 @@ MCPサーバーはstdin/stdoutでの対話的通信が必要なため、設定�
 ```json
 {
   "mcpServers": {
-    "gemini-grounding-remote-mcp-server": {
+    "deno-gemini-grounding-mcp-server": {
       "command": "docker",
       "args": [
         "run",
         "-e",
-        "CONNPASS_API_KEY=XXXXXXXXXXXXXXXX",
-        "-e",
         "GEMINI_API_KEY=XXXXXXXXXXXXXXXX",
-        "gemini-grounding-remote-mcp-server"
+        "deno-gemini-grounding-mcp-server"
       ]
     }
   }
@@ -206,44 +205,45 @@ Dockerfileを使用してサーバーを起動することもできます。
 1. Dockerイメージをビルドします。
 
 ```bash
-docker build -t connpass-user-mcp-server .
+docker build -t deno-gemini-grounding-mcp-server .
 ```
 
 2. コンテナを起動します。APIキーは環境変数として渡します。
 
 ```bash
-docker run -e CONNPASS_API_KEY=XXXXXXXXXXXXXXXX -e GEMINI_API_KEY=YYYYYYYYYYYYYYYY connpass-user-mcp-server
+docker run -e CONNPASS_API_KEY=XXXXXXXXXXXXXXXX -e GEMINI_API_KEY=YYYYYYYYYYYYYYYY deno-gemini-grounding-mcp-server
 ```
 
 MCPクライアントの設定ファイルでは、`docker`コマンドを指定します。
 
 ```json
-"connpass-user-mcp-server": {
+"deno-gemini-grounding-mcp-server": {
   "command": "docker",
   "args": [
     "run",
     "-e",
-    "CONNPASS_API_KEY=XXXXXXXXXXXXXXXX",
-    "-e",
     "GEMINI_API_KEY=YYYYYYYYYYYYYYYY",
-    "connpass-user-mcp-server"
+    "deno-gemini-grounding-mcp-server"
   ]
 }
 ```
 
 ### `npx`での起動（非推奨）
 
-[@yamanoku/connpass-user-mcp-server](https://www.npmjs.com/package/@yamanoku/connpass-user-mcp-server)にてパッケージを提供しているため、リポジトリをクローンせずに`npx`でMCPサーバーの起動が可能です。
+このリポジトリをクローンしてDenoまたはNode.jsでMCPサーバーの起動が可能です。
 
 ```json
-"connpass-user-mcp-server": {
+"deno-gemini-grounding-mcp-server": {
   "command": "wsl.exe",
   "args": [
-    "bash",
-    "-c",
-    "CONNPASS_API_KEY=XXXXXXXXXXXXXXXX /home/user/.local/share/mise/installs/node/22.14.0/bin/npx -y @yamanoku/connpass-user-mcp-server",
+    "/home/smorce/.deno/bin/deno",
+    "--allow-net=generativelanguage.googleapis.com",
+    "--env-file=/home/smorce/MCP/deno-gemini-grounding-mcp-server/.env",
+    "--allow-read",
+    "--allow-env",
+    "/home/smorce/MCP/deno-gemini-grounding-mcp-server/index.ts"
   ]
-},
+}
 ```
 
 **ただし`npx`でMCPサーバーを起動するのはサプライチェーン攻撃などのセキュリティ的な懸念があるため非推奨としています。**

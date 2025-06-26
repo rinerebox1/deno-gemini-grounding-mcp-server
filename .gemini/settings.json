@@ -1,14 +1,14 @@
 {
     "mcpServers": {
-      "gemini-grounding-remote-mcp-server": {
+      "deno-gemini-grounding-mcp-server": {
         "command": "wsl.exe",
         "args": [
           "/home/smorce/.deno/bin/deno",
           "--allow-net=generativelanguage.googleapis.com",
-          "--env-file=/home/smorce/MCP/gemini-grounding-remote-mcp-server/.env",
+          "--env-file=/home/smorce/MCP/deno-gemini-grounding-mcp-server/.env",
           "--allow-read",
           "--allow-env",
-          "/home/smorce/MCP/gemini-grounding-remote-mcp-server/index.ts"
+          "/home/smorce/MCP/deno-gemini-grounding-mcp-server/index.ts"
         ],
         "timeout": 30000,
         "trust": true

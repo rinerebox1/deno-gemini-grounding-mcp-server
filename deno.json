@@ -1,7 +1,7 @@
 {
   "$id": "https://jsr.io/schema/config-file.v1.json",
   "$schema": "http://json-schema.org/draft-07/schema",
-  "name": "@yamanoku/connpass-user-mcp-server",
+  "name": "deno-gemini-grounding-mcp-server",
   "description": "Model Context Protocol server that provides connpass users API v2",
   "version": "0.2.4",
   "license": "MIT",

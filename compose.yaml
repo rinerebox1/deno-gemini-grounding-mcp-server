@@ -1,8 +1,8 @@
 services:
-  gemini-grounding-remote-mcp-server:
+  deno-gemini-grounding-mcp-server:
     build: .
-    image: gemini-grounding-remote-mcp-server:latest
-    container_name: gemini-grounding-remote-mcp-server-container
+    image: deno-gemini-grounding-mcp-server:latest
+    container_name: deno-gemini-grounding-mcp-server-container
     environment:
       # Gemini API設定
       - GEMINI_API_KEY=${GEMINI_API_KEY}
