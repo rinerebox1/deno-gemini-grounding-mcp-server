@@ -1,5 +1,9 @@
 import type { TextContent } from "@modelcontextprotocol/sdk/types.js";
 import type { FormatGroups, FormatUsers } from "../../types.ts";
+import { 
+  type GenerateContentResponse, 
+  type GroundingChunk as SDKGroundingChunk 
+} from '@google/genai';
 
 /**
  * 共通のレスポンス形式に整形する関数
@@ -14,6 +18,42 @@ export const formatResponse = (
     content: [{ type: "text", text }],
   };
 };
+
+
+
+
+// Google 検索を使うために追加した
+export type GroundingChunk = SDKGroundingChunk;
+
+export interface FormattedResponse {
+  content: TextContent[];
+  webSearchQueries: string[];
+  groundingChunks: GroundingChunk[];
+}
+
+export const formatGroundedResponse = (
+  response: GenerateContentResponse
+): FormattedResponse => {
+  // ① テキスト抽出
+  const text =
+    typeof response.text === 'string'
+      ? response.text
+      : response.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+  // ② groundingMetadata 取得
+  const md = response.candidates?.[0]?.groundingMetadata;
+  const webSearchQueries = md?.webSearchQueries ?? [];
+  const groundingChunks = md?.groundingChunks ?? [];
+
+  return {
+    content: [{ type: 'text', text }],
+    webSearchQueries,
+    groundingChunks,
+  };
+};
+
+
+
 
 /**
  * イベントのマークダウン形式への変換

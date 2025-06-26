@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import {
   getGenAIResponse,
+  getGoogleSearchResponse,
   getRandomGreeting,
 } from "./tools/index.ts";
 import process from "node:process";
@@ -33,6 +34,24 @@ server.tool(
   },
   async ({ userMessage, options }: { userMessage: string; options: { useVertexAI: boolean; model: string; project?: string; location?: string; } }) => {
     return await getGenAIResponse(userMessage, options);
+  },
+);
+
+server.tool(
+  "call_google_search",
+  "ユーザープロンプトを受け取り、Google検索を使用してAIから応答を生成します。",
+  {
+    userMessage: z.string().describe("検索および生成AIに送信するメッセージ/プロンプト。"),
+    options: z.object({
+      useVertexAI: z.boolean().describe("Vertex AIを使用する場合はtrue、Gemini Developer APIを使用する場合はfalseに設定。"),
+      model: z.string().describe("モデル名（例：'gemini-1.5-flash-001'）またはVertex AI用の完全なモデルパス。"),
+      project: z.string().optional().describe("Google Cloud Project ID（useVertexAIがtrueの場合は必須）。"),
+      location: z.string().optional().describe("Google Cloud Project Location（useVertexAIがtrueの場合は必須）。"),
+      apiVersion: z.string().optional().describe("API バージョン（デフォルトは 'v1'）。"),
+    }).describe("AI呼び出しを設定するためのオプション。"),
+  },
+  async ({ userMessage, options }: { userMessage: string; options: { useVertexAI: boolean; model: string; project?: string; location?: string; apiVersion?: string; } }) => {
+    return await getGoogleSearchResponse(userMessage, options);
   },
 );
 
