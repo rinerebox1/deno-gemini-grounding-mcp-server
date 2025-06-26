@@ -88,16 +88,17 @@ export const getGoogleSearchResponse = async (
   }
 
   // ---- SDK 初期化オプションの構築 ----------------------------------------
+  // Grounding機能にはv1betaが必要
   const ctorOpts = opts.useVertexAI
     ? {
         vertexai: true,
         project: opts.project,
         location: opts.location,
-        apiVersion: opts.apiVersion ?? 'v1',
+        apiVersion: opts.apiVersion ?? 'v1beta',
       }
     : {
         apiKey: GEMINI_API_KEY,
-        apiVersion: opts.apiVersion ?? 'v1',
+        apiVersion: opts.apiVersion ?? 'v1beta',
       };
 
   // ---- パラメータ検証 --------------------------------------------------

@@ -45,11 +45,49 @@ export const formatGroundedResponse = (
   const webSearchQueries = md?.webSearchQueries ?? [];
   const groundingChunks = md?.groundingChunks ?? [];
 
-  return {
+  // ③ デバッグ用ログ出力
+  console.error(`[formatGroundedResponse] Debug Info:`);
+  console.error(`- Text length: ${text.length}`);
+  console.error(`- Has groundingMetadata: ${!!md}`);
+  console.error(`- Web search queries count: ${webSearchQueries.length}`);
+  console.error(`- Grounding chunks count: ${groundingChunks.length}`);
+  if (md) {
+    console.error(`- Full groundingMetadata:`, JSON.stringify(md, null, 2));
+  }
+
+  // ④ より詳細なGrounding情報を含める
+  const formattedResponse: FormattedResponse = {
     content: [{ type: 'text', text }],
     webSearchQueries,
     groundingChunks,
   };
+
+  // ⑤ Grounding情報がある場合は、追加のコンテンツとして含める
+  if (webSearchQueries.length > 0 || groundingChunks.length > 0) {
+    // 検索ソース情報をテキストに追加
+    let groundingInfo = '\n\n--- 検索ソース情報 ---\n';
+    
+    if (webSearchQueries.length > 0) {
+      groundingInfo += `検索クエリ: ${webSearchQueries.join(', ')}\n`;
+    }
+    
+    if (groundingChunks.length > 0) {
+      groundingInfo += `検索ソース数: ${groundingChunks.length}\n`;
+      groundingChunks.forEach((chunk, index) => {
+        if (chunk.web) {
+          groundingInfo += `${index + 1}. ${chunk.web.title || 'Unknown'}: ${chunk.web.uri || ''}\n`;
+        }
+      });
+    }
+
+    // 元のテキストにGrounding情報を追加
+    formattedResponse.content = [{ 
+      type: 'text', 
+      text: text + groundingInfo 
+    }];
+  }
+
+  return formattedResponse;
 };
 
 

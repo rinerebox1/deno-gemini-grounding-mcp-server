@@ -10,7 +10,9 @@
   "tasks": {
     "start": "deno run --env-file=.env -A index.ts",
     "test": "deno test --env-file=.env -A",
-    "test:tokyo": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/tokyo_attraction_test.ts"
+    "test:tokyo": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/tokyo_attraction_test.ts",
+    "test:google_search": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/google_search_test.ts",
+    "test:google_search_simple": "deno run --allow-run --allow-net=generativelanguage.googleapis.com --allow-env --allow-read --env-file=.env tests/google_search_simple_test.ts"
   },
   "imports": {
     "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@1.10.2",

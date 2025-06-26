@@ -15,6 +15,15 @@ docker compose down
 
 テスト:
 deno task test:tokyo
+deno task test:google_search
+deno task test:google_search_simple
+
+
+Google 検索によるグラウンディング	
+https://cloud.google.com/vertex-ai/generative-ai/pricing?hl=ja
+
+Gemini Flash 2.5 なら1日 1500 件まで無料で検索可能。Lite も一緒。だいたい1回検索で3クエリくらい消費する。
+
 
 
 
