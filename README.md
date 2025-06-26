@@ -64,6 +64,8 @@ https://cloud.google.com/vertex-ai/generative-ai/pricing?hl=ja
 Gemini Flash 2.5 なら1日 1500 件まで無料で検索可能。Lite も一緒。だいたい1回検索で3クエリくらい消費する。
 
 
+## ファイル読み取りや環境変数アクセス、ネットワーク接続などは Deno のセキュリティモデル上 --allow-read、--allow-env、--allow-net などのフラグで制御されますが、これらもあくまで【ローカル実行時にのみ有効】【リモートでは使えない】です
+
 
 ## Cursor かつ WSL 側で MCP Tool を登録するのがかなり難しい。とりあえず、Cドライブ側で Gemini CLI から MCP サーバーを認識できたので OK とする。ただ、Cドライブ側でも Cursor での MCP Tool 呼び出しはできないので、Cursor で MCP 使うのは止める。
 
