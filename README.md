@@ -18,6 +18,15 @@ deno task test:tokyo
 
 
 
+良いかでもチェックできる。
+echo '{"jsonrpc": "2.0", "id": 1, "method": "tools/list", "params": {}}' | deno run --env-file=.env --allow-net=generativelanguage.googleapis.com --allow-env --allow-read index.ts
+
+成功しているので、問題はCursorとMCPサーバー間の接続にあるようです。Cursor Forumの解決策を試してみましょう：
+→Cursor かつ WSL 側で MCP Tool を登録するのがかなり難しい。とりあえず、Cドライブ側で Gemini CLI から MCP サーバーを認識できたので OK とする。
+
+
+
+
 
 deno.lock のアップデート方法:
 rm -rf ~/.cache/deno && deno cache --reload index.ts
