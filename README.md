@@ -19,7 +19,7 @@ deno task test:google_search
 deno task test:google_search_simple
 
 
-Google 検索によるグラウンディング	
+Google 検索によるグラウンディング	の料金
 https://cloud.google.com/vertex-ai/generative-ai/pricing?hl=ja
 
 Gemini Flash 2.5 なら1日 1500 件まで無料で検索可能。Lite も一緒。だいたい1回検索で3クエリくらい消費する。
